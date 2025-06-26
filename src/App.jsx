@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { db, ref, set, onValue } from './firebase';
 
 const skillList = [
   "A124", 
@@ -24,6 +25,8 @@ const skillList = [
 ];
 
 export default function FFWSDraftSimulator() {
+const query = new URLSearchParams(window.location.search);
+const roomId = query.get('room') || 'default-room';
   const [teamNames, setTeamNames] = useState({ A: "Tim A", B: "Tim B" });
   const [bans, setBans] = useState({ A: null, B: null });
   const [picks, setPicks] = useState({ A: [], B: [] });
@@ -92,6 +95,36 @@ export default function FFWSDraftSimulator() {
     }
   }, [timer, isStarted, bans, step, availableSkills]);
 
+  useEffect(() => {
+    const roomRef = ref(db, `rooms/${roomId}`);
+    const unsub = onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && isSpectator) {
+        setTeamNames(data.teamNames);
+        setBans(data.bans);
+        setPicks(data.picks);
+        setStep(data.step);
+        setTimer(data.timer);
+        setIsStarted(data.isStarted);
+      }
+    });
+    return () => unsub();
+  }, [isSpectator]);
+
+  useEffect(() => {
+    if (!isSpectator) {
+      const roomRef = ref(db, `rooms/${roomId}`);
+      set(roomRef, {
+        teamNames,
+        bans,
+        picks,
+        step,
+        timer,
+        isStarted
+      });
+    }
+  }, [teamNames, bans, picks, step, timer, isStarted, isSpectator]);
+  
   const resetDraft = () => {
     setTeamNames({ A: "Tim A", B: "Tim B" });
     setBans({ A: null, B: null });
