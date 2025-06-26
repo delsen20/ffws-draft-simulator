@@ -99,14 +99,19 @@ const roomId = query.get('room') || 'default-room';
     const roomRef = ref(db, `rooms/${roomId}`);
     const unsub = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
-      if (data && isSpectator) {
-        setTeamNames(data.teamNames);
-        setBans(data.bans);
-        setPicks(data.picks);
-        setStep(data.step);
-        setTimer(data.timer);
-        setIsStarted(data.isStarted);
-      }
+      if (!data && isSpectator) {
+        console.warn("Room belum ada atau kosong.");
+        return;
+        }
+        if (data && isSpectator) {
+        setTeamNames(data.teamNames || { A: "Tim A", B: "Tim B" });
+        setBans(data.bans || { A: null, B: null });
+        setPicks(data.picks || { A: [], B: [] });
+        setStep(data.step || 0);
+        setTimer(data.timer || 60);
+        setIsStarted(data.isStarted || false);
+        }
+
     });
     return () => unsub();
   }, [isSpectator]);
@@ -124,7 +129,7 @@ const roomId = query.get('room') || 'default-room';
       });
     }
   }, [teamNames, bans, picks, step, timer, isStarted, isSpectator]);
-  
+
   const resetDraft = () => {
     setTeamNames({ A: "Tim A", B: "Tim B" });
     setBans({ A: null, B: null });
@@ -154,6 +159,10 @@ const roomId = query.get('room') || 'default-room';
       <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-6 uppercase tracking-wide drop-shadow-lg">
         RCS SEASON 4 DRAFT PICK
       </h1>
+      <p className="text-center text-sm text-gray-400 mb-4">
+        Room ID: <span className="font-mono">{roomId}</span> — Mode: <strong>{isSpectator ? 'Spectator' : 'Player'}</strong>
+        </p>
+
 
       {isStarted && phase.type !== "done" && (
         <div className="text-center mb-8">
