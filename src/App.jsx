@@ -31,6 +31,7 @@ export default function FFWSDraftSimulator() {
   const [step, setStep] = useState(0);
   const [timer, setTimer] = useState(30);
   const [isStarted, setIsStarted] = useState(false);
+  const [isSpectator, setIsSpectator] = useState(false);
 
   const allChosen = [...picks.A, ...picks.B, bans.A, bans.B].filter(Boolean);
   const availableSkills = skillList.filter(skill => !allChosen.includes(skill));
@@ -104,6 +105,19 @@ export default function FFWSDraftSimulator() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto font-sans bg-gradient-to-br from-black via-gray-900 to-gray-800 min-h-screen text-white">
+        {!isStarted && (
+            <div className="text-center mb-6">
+            <label className="text-white mr-4 font-semibold">Mode:</label>
+            <select
+                value={isSpectator ? "spectator" : "player"}
+                onChange={e => setIsSpectator(e.target.value === "spectator")}
+                className="px-4 py-2 rounded text-black"
+            >
+                <option value="player">Player</option>
+                <option value="spectator">Spectator</option>
+            </select>
+            </div>
+        )}      
       <h1 className="text-4xl font-extrabold text-center text-yellow-400 mb-6 uppercase tracking-wide drop-shadow-lg">
         RCS SEASON 4 DRAFT PICK
       </h1>
@@ -146,11 +160,14 @@ export default function FFWSDraftSimulator() {
       {!isStarted && (
         <div className="text-center mb-8">
           <button
-            onClick={() => setIsStarted(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-full text-lg font-semibold shadow-lg"
-          >
+            onClick={() => !isSpectator && setIsStarted(true)}
+            disabled={isSpectator}
+            className={`px-10 py-4 rounded-full text-lg font-semibold shadow-lg ${
+                isSpectator ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 text-white"
+            }`}
+            >
             ▶️ Mulai Draft
-          </button>
+            </button>
         </div>
       )}
 
@@ -159,7 +176,9 @@ export default function FFWSDraftSimulator() {
           {availableSkills.map(skill => (
             <button
                 key={skill}
-                onClick={() => handleSkillSelect(skill)}
+                onClick={() => {
+                if (!isSpectator) handleSkillSelect(skill);
+                }}
                 className="flex flex-col items-center bg-gray-200 hover:scale-105 hover:bg-blue-400 transition transform py-2 px-2 rounded-lg shadow text-center"
             >
                 <img
@@ -176,11 +195,15 @@ export default function FFWSDraftSimulator() {
 
       <div className="text-center pb-10">
         <button
-          onClick={resetDraft}
-          className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-full shadow-md text-sm"
+        onClick={() => !isSpectator && resetDraft()}
+        disabled={isSpectator}
+        className={`px-8 py-3 rounded-full shadow-md text-sm ${
+            isSpectator ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 text-white"
+        }`}
         >
-          🔄 Reset Draft
+        🔄 Reset Draft
         </button>
+
       </div>
     </div>
   );
