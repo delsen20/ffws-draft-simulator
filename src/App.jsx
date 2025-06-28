@@ -21,7 +21,8 @@ const skillList = [
   "Ignis",
   "Orion",
   "Kassie",
-  "Oscar"
+  "Oscar",
+  "Ryden"
 ];
 
 export default function FFWSDraftSimulator() {
@@ -99,22 +100,26 @@ const roomId = query.get('room') || 'default-room';
     const roomRef = ref(db, `rooms/${roomId}`);
     const unsub = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
-      if (!data && isSpectator) {
-        console.warn("Room belum ada atau kosong.");
-        return;
+
+      if (isSpectator) {
+        if (!data) {
+          console.warn('Room belum dibuat oleh player.');
+          setIsStarted(false);
+          return;
         }
-        if (data && isSpectator) {
+
         setTeamNames(data.teamNames || { A: "Tim A", B: "Tim B" });
         setBans(data.bans || { A: null, B: null });
         setPicks(data.picks || { A: [], B: [] });
         setStep(data.step || 0);
-        setTimer(data.timer || 60);
+        setTimer(data.timer ?? 60);
         setIsStarted(data.isStarted || false);
-        }
-
+      }
     });
+
     return () => unsub();
   }, [isSpectator]);
+
 
   useEffect(() => {
     if (!isSpectator) {
