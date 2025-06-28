@@ -37,7 +37,12 @@ const roomId = query.get('room') || 'default-room';
   const [isStarted, setIsStarted] = useState(false);
   const [isSpectator, setIsSpectator] = useState(false);
 
-  const allChosen = [...picks.A, ...picks.B, bans.A, bans.B].filter(Boolean);
+  const allChosen = [
+    ...(Array.isArray(picks.A) ? picks.A : []),
+    ...(Array.isArray(picks.B) ? picks.B : []),
+    bans.A,
+    bans.B
+  ].filter(Boolean);
   const availableSkills = skillList.filter(skill => !allChosen.includes(skill));
 
   const currentPhase = () => {
@@ -110,13 +115,15 @@ const roomId = query.get('room') || 'default-room';
 
         setTeamNames(data.teamNames || { A: "Tim A", B: "Tim B" });
         setBans(data.bans || { A: null, B: null });
-        setPicks(data.picks || { A: [], B: [] });
+        setPicks({
+        A: Array.isArray(data?.picks?.A) ? data.picks.A : [],
+        B: Array.isArray(data?.picks?.B) ? data.picks.B : []
+      });
         setStep(data.step || 0);
         setTimer(data.timer ?? 60);
         setIsStarted(data.isStarted || false);
       }
     });
-
     return () => unsub();
   }, [isSpectator]);
 
